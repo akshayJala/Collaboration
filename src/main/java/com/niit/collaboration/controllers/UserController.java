@@ -3,6 +3,8 @@ package com.niit.collaboration.controllers;
 
 import java.util.List;
 
+import javax.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -90,6 +92,50 @@ public ResponseEntity<UserDetails> makeAdmin(@PathVariable("userId") String user
 	userDetails.setErrorMessage("role updated as admin successfully");
 	return new ResponseEntity<UserDetails>(userDetails, HttpStatus.OK);
 }
+@RequestMapping(value = "/login", method = RequestMethod.POST)
+public ResponseEntity<UserDetails> authenticate(@RequestBody UserDetails userDetails, HttpSession httpSession) {
+
+	userDetails = userDetailsDAO.authenticate(userDetails.getUserId(), userDetails.getPassword());
+	if (userDetails == null) {
+		userDetails = new UserDetails();
+		userDetails.setErrorCode("404");
+		userDetails.setErrorMessage("Incorrect userName and password , please try again...");
+
+	} else {
+		if (userDetails.getStatus() == 'Y') {
+			userDetails.setErrorCode("200");
+			userDetails.setErrorMessage("You are logged in as user");
+			httpSession.setAttribute("loggedInUserId", userDetails.getUserId());
+			userDetails.setIsOnline('Y');
+			userDetailsDAO.updateUser(userDetails);
+		}else{
+			userDetails.setErrorCode("200");
+			userDetails.setErrorMessage("Unauthorized entry!");
+			userDetails.setIsOnline('N');
+			userDetails.setStatus('N');
+		}
+	}
+	return new ResponseEntity<UserDetails>(userDetails, HttpStatus.OK);
+}
+@RequestMapping(value = "/logout", method = RequestMethod.GET)
+public ResponseEntity<UserDetails> logOut(HttpSession httpSession) {
+	String loggedInUser = (String) httpSession.getAttribute("loggedInUserId");
+
+	userDetails = userDetailsDAO.getUser(loggedInUser);
+	userDetails.setIsOnline('N');
+
+	if (userDetailsDAO.updateUser(userDetails)) {
+		userDetails.setErrorMessage("successfully logged out");
+		userDetails.setErrorCode("200");
+	} else {
+		userDetails.setErrorMessage("error logging out");
+		userDetails.setErrorCode("404");
+	}
+	
+	httpSession.invalidate();
+	return new ResponseEntity<UserDetails>(userDetails, HttpStatus.OK);
+
+}
 
 
 
@@ -115,9 +161,10 @@ public ResponseEntity<UserDetails> makeAdmin(@PathVariable("userId") String user
 
 
 
-@RequestMapping(value="/accept/{id}", method=RequestMethod.GET)
-public ResponseEntity<UserDetails> accept(@PathVariable("id") String id){
-	userDetails=updateStatus(id,'A',"");
+
+@RequestMapping(value="/accept/{userId}", method=RequestMethod.GET)
+public ResponseEntity<UserDetails> accept(@PathVariable("userId") String userId){
+	userDetails=updateStatus(userId,'A',"");
 	if(userDetailsDAO.updateUser(userDetails)){
 		userDetails.setErrorCode("200");
 		userDetails.setErrorMessage("successfully updated");
@@ -128,6 +175,21 @@ public ResponseEntity<UserDetails> accept(@PathVariable("id") String id){
 }
 	return new ResponseEntity<UserDetails>(userDetails, HttpStatus.OK);
 }
+@RequestMapping(value="/reject/{userId}/{reason}")
+public ResponseEntity<UserDetails> reject(@PathVariable("userId") String userId, @PathVariable("reason") String reason){
+	userDetails=userDetailsDAO.getUser(userId);
+	userDetails.setStatus('R');
+	userDetails.setReason(reason);
+	if(userDetailsDAO.updateUser(userDetails)==true){
+		userDetails.setErrorCode("200");
+		userDetails.setErrorMessage("successfully rejected");
+	}else{
+		userDetails.setErrorCode("404");
+		userDetails.setErrorMessage("couldn't reject the user");
+		
+	}
+	return new ResponseEntity<UserDetails>(userDetails, HttpStatus.OK);
+	}
 
 
 
