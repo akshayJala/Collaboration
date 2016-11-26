@@ -2,7 +2,7 @@ package com.niit.collaboration.model;
 
 import javax.persistence.Id;
 
-public class Job {
+public class Job extends ErrorDomain {
 	@Id
 private String jobId;
 private String profile;

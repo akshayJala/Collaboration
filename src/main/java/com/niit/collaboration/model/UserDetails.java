@@ -2,7 +2,7 @@ package com.niit.collaboration.model;
 
 import javax.persistence.Id;
 
-public class UserDetails {
+public class UserDetails extends ErrorDomain {
 	@Id
 	private String userId;
 	private String email;

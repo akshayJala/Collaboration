@@ -2,7 +2,7 @@ package com.niit.collaboration.model;
 
 import javax.persistence.Id;
 
-public class Blog {
+public class Blog extends ErrorDomain {
 	@Id
 private int blogId;
 private String title;

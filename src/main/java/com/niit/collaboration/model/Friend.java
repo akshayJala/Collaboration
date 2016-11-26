@@ -2,7 +2,7 @@ package com.niit.collaboration.model;
 
 import javax.persistence.Id;
 
-public class Friend {
+public class Friend extends ErrorDomain {
 	@Id
 private String friendId;
 private String userId;

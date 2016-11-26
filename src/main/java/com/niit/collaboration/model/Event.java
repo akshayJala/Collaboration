@@ -2,7 +2,7 @@ package com.niit.collaboration.model;
 
 import javax.persistence.Id;
 
-public class Event {
+public class Event extends ErrorDomain{
 	@Id
 private int eventId;
 private String eventLocation;
